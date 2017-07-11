@@ -151,15 +151,13 @@ def _try_toparse_body(packet_type, body, parsed):
     # + - reserved
     # - - unused
     # . - reserved
-    # < - station capabilities
     # ? - general query format
-    # T - telemetry report
     # [ - maidenhead locator beacon
     # \ - unused
     # ] - unused
     # ^ - unused
     # } - 3rd party traffic
-    if packet_type in '#$%)*?T[}':
+    if packet_type in '#$%)*?[}':
         raise UnknownFormat("format is not supported")
 
     # user defined
@@ -203,6 +201,12 @@ def _try_toparse_body(packet_type, body, parsed):
         logger.debug("Attempting to parse as station capabilities")
 
         body, result = parse_capability(body)
+
+    # Telemetry report
+    elif packet_type == 'T':
+        logger.debug("Attempting to parse as telemetry report")
+
+        body, result = parse_telemetry_report(body)
 
     # postion report (regular or compressed)
     elif (packet_type in '!=/@;' or
