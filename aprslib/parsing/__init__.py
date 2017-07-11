@@ -42,6 +42,7 @@ from aprslib.parsing.mice import *
 from aprslib.parsing.message import *
 from aprslib.parsing.telemetry import *
 from aprslib.parsing.weather import *
+from aprslib.parsing.capability import *
 
 
 def _unicode_packet(packet):
@@ -158,7 +159,7 @@ def _try_toparse_body(packet_type, body, parsed):
     # ] - unused
     # ^ - unused
     # } - 3rd party traffic
-    if packet_type in '#$%)*<?T[}':
+    if packet_type in '#$%)*?T[}':
         raise UnknownFormat("format is not supported")
 
     # user defined
@@ -196,6 +197,12 @@ def _try_toparse_body(packet_type, body, parsed):
         logger.debug("Attempting to parse as positionless weather report")
 
         body, result = parse_weather(body)
+
+    # Station capability
+    elif packet_type == '<':
+        logger.debug("Attempting to parse as station capabilities")
+
+        body, result = parse_capability(body)
 
     # postion report (regular or compressed)
     elif (packet_type in '!=/@;' or
