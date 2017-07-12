@@ -7,6 +7,7 @@ __all__ = [
         'parse_telemetry',
         'parse_comment_telemetry',
         'parse_telemetry_config',
+        'parse_telemetry_report'
         ]
 
 
@@ -60,6 +61,34 @@ def parse_comment_telemetry(text):
 
     return (text, parsed)
 
+def parse_telemetry_report(body):
+    parsed = {}
+
+    # Strictly speaking, the spec says the values should be 3 digits with a
+    # range of 0 to 255, however in practice you may see decimals. Even Bob
+    # WB4APR suggests that it's merely 3 bytes, and allows values up to 999 -
+    # http://www.tapr.org/pipermail/aprssig/2013-March/041637.html
+    match = re.findall(r"^#(MIC|\d+),?([\d\.,]+)$", body)
+    if not match:
+        raise ParseError("incorrect format for telemetry report packet - non-integer values?")
+
+    else:
+        logger.debug("Attempting to parse telemetry report packet")
+        sequence, values = match[0]
+
+        parsed.update({'format': 'telemetry-report'})
+
+        # Given the note above, rather than converting to an integer or a
+        # decimal/float, just pass the extracted values back as strings and let
+        # the recipient deal with them as they see fit.
+        parsed.update({
+            'telemetry': {
+                'seq': sequence,
+                'vals': values.split(',')
+            }
+        })
+
+    return ('', parsed)
 
 def parse_telemetry_config(body):
     parsed = {}
